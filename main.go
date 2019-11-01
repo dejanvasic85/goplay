@@ -1,34 +1,29 @@
 package main
 
 import (
-	"context"
 	"net/http"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 	log "github.com/sirupsen/logrus"
 )
 
-func RequestMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		requestID := r.Header.Get("X-Request-ID")
-		if len(requestID) == 0 {
-			requestID = uuid.New().String()
-		}
-
-		ctx := context.WithValue(r.Context(), "requestId", requestID)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+var users = map[string]string {
+	"foo": "Mister Fooooo",
+	"bar": "Missus Barrrr",
 }
 
 func HandleGetUser(w http.ResponseWriter, r *http.Request) {
+	userID := r.Form.Get("id")
+	log.Infof("Fetching user %s", userID)
+
+	if value, exists := users.Exists
+
 	w.Write([]byte("Ok"))
 }
 
 func main() {
 	r := mux.NewRouter()
 
-	r.Use(RequestMiddleware)
 	r.HandleFunc("/users/{id}", HandleGetUser)
 
 	log.Info("Starting server on port 9001")
