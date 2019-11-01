@@ -17,19 +17,28 @@ var users = map[string]string{
 func CorrelationMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		id := r.Header.Get("Correlation-ID")
-		ctx := context.WithValue(r.Context(), "CorrelationID", id)
+		entry := log.WithFields(log.Fields{
+			"correlationID": id,
+		})
+		ctx := context.WithValue(r.Context(), "RequestLogger", entry)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
+func GetContextLogger(r *http.Request) *log.Entry {
+	logger := r.Context().Value("RequestLogger")
+	return logger.(*log.Entry)
+}
+
 func HandleGetUser(w http.ResponseWriter, r *http.Request) {
+	logger := r.Context().Value("RequestLogger").(*log.Entry)
 	params := mux.Vars(r)
 	userID := params["id"]
 
-	log.Infof("Fetching user %s", userID)
+	logger.Infof("Fetching user %s", userID)
 
 	if value, exists := users[userID]; exists {
-		log.Infof("Found user %s", value)
+		logger.Infof("Found user %s", value)
 		data := struct {
 			Hello string
 		}{
